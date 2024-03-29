@@ -33,7 +33,8 @@ CORS_ALLOW_HEADERS = (
 
 MY_APPS = [
     'auth_app',
-    'file_upload_router'
+    'file_upload_router',
+    'analyze_file',
 ]
 
 INSTALLED_APPS = [
