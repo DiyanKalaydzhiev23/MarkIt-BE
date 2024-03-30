@@ -36,6 +36,3 @@ def download_file_from_bucket(filename, extension, username):
     else:
         print(f"Failed to download file: {response.status_code}")
         return None
-
-
-

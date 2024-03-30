@@ -4,7 +4,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from file_upload_router.actions import upload_file_to_bucket, download_file_from_bucket
+from file_upload_router.actions import upload_file_to_bucket
 
 
 class FileUploadView(APIView):
@@ -29,7 +29,6 @@ class FileUploadView(APIView):
 
         filename, extension = str(file_obj).split('.')
         upload_response = upload_file_to_bucket(file_obj, filename, extension, user.username)
-        download_response = download_file_from_bucket(filename, extension, user.username)
 
         if not upload_response.ok:
             return Response(

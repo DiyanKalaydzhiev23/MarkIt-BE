@@ -5,6 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from analyze_file.actions import extract_text_from_pdf
+from helpers import get_summary_for_extracted_text
 
 
 class AnalyzePdf(APIView):
@@ -26,6 +27,8 @@ class AnalyzePdf(APIView):
         filename = request.data.get('filename')
         extension = request.data.get('extension')
 
-        extract_text_from_pdf(filename, extension, user.username)
+        data: list = extract_text_from_pdf(filename, extension, user.username)
+
+        get_summary_for_extracted_text(data)
 
         return Response(status=status.HTTP_201_CREATED)

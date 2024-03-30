@@ -52,9 +52,11 @@ def extract_text_from_pdf(filename, extension, username):
         result = extract_pdf_operation.execute(execution_context)
 
         # After execution, call the function to process the result in memory
-        process_extracted_pdf_result_in_memory(result)
+        result = process_extracted_pdf_result_in_memory(result)
 
         logging.info("PDF text extraction and processing successful")
+
+        return result
 
     except (ServiceApiException, ServiceUsageException, SdkException) as e:
         logging.exception("Exception encountered while executing operation: {}".format(e))
@@ -82,7 +84,16 @@ def process_extracted_pdf_result_in_memory(result):
                     try:
                         # Assuming JSON content for demonstration; adjust as necessary.
                         data = json.loads(file_content)
-                        print(f"Data from {file_name}: {data}")
+                        return extract_text_from_json_from_pdf(data)
                     except json.JSONDecodeError as e:
                         print(f"Could not decode JSON from {file_name}: {e}")
 
+
+def extract_text_from_json_from_pdf(json_data):
+    result = []
+
+    for element in json_data["elements"]:
+        if element.get("Text"):
+            result.append(element.get("Text"))
+
+    return result
