@@ -4,7 +4,6 @@ import os
 from django.core.files.base import ContentFile
 from moviepy.editor import VideoFileClip
 
-
 from rest_framework import status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
@@ -88,7 +87,6 @@ class AnalyzeVideo(APIView):
         ),
     ])
     def post(self, request, *args, **kwargs):
-
         cloudinary.config(
             cloud_name=settings.CLOUDINARY['cloud_name'],
             api_key=settings.CLOUDINARY['api_key'],

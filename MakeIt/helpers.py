@@ -23,8 +23,13 @@ def serialize_load_json(data):
 
 def get_summary_for_extracted_text(
         data: list,
-        prompt="Make analytics ask a market researcher for this data"
+        prompt="Make analytics ask a market researcher for this data",
+        old_conversations=None
 ):
+    if not old_conversations:
+        old_conversations = []
+
+
     headers = {"Authorization": f"Bearer {decouple.config('EDEN_AI_API_KEY')}"}
 
     url = "https://api.edenai.run/v2/text/chat"
@@ -35,7 +40,7 @@ def get_summary_for_extracted_text(
                                  "Give structured data about the type of people in the text, revenue, sales etc."
                                  "In the response give only data that matters and makes sense."
                                  "Remember from which file comes which data!",
-        "previous_history": [],
+        "previous_history": old_conversations,
         "temperature": 0.0,
         "max_tokens": 500,
         "fallback_providers": ""

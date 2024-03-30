@@ -16,6 +16,11 @@ class QueryProject(views.APIView):
             type=openapi.TYPE_STRING,
         ),
         openapi.Parameter(
+            'old_conversions',
+            openapi.IN_QUERY,
+            type=openapi.TYPE_ARRAY,
+        ),
+        openapi.Parameter(
             'project_name',
             openapi.IN_QUERY,
             type=openapi.TYPE_STRING,
@@ -24,6 +29,7 @@ class QueryProject(views.APIView):
     def post(self, request):
         prompt = request.data.get('prompt')
         project_name = request.data.get('project_name')
+        old_conversations = request.data.get('old_conversions', [])
 
         try:
             project = Project.objects.get(project_name=project_name)
@@ -36,7 +42,7 @@ class QueryProject(views.APIView):
         prompts = ProjectPrompts.objects.filter(project=project)
         result = list(f"In file: {el.file.file_path} {el.prompt}" for el in prompts)
 
-        result = get_summary_for_extracted_text(result, prompt)
+        result = get_summary_for_extracted_text(result, prompt, old_conversations)
 
         return Response(
             {
