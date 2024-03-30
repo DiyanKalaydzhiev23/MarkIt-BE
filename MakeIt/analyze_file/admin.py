@@ -1,5 +1,5 @@
 from django.contrib import admin
-from analyze_file.models import UserProfileMedia
+from file_upload_router.models import UserProfileMedia
 
 
 class UserProfileMediaAdmin(admin.ModelAdmin):

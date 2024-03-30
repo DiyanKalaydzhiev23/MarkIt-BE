@@ -1,24 +1,24 @@
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
-
-from analyze_file.models import UserProfileMedia
 from file_upload_router.actions import upload_file_to_bucket
+from file_upload_router.models import UserProfileMedia
+from file_upload_router.serializers import UserProfileMediaSerializer
 
 
 class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
-    @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter(
-            'file',
-            openapi.IN_QUERY,
-            type=openapi.TYPE_FILE,
-        ),
-    ])
+    @swagger_auto_schema(
+        operation_description="Retrieve all user profile media items.",
+        responses={
+            200: UserProfileMediaSerializer(many=True),
+            404: 'User does not have a profile.'
+        }
+    )
     def post(self, request, *args, **kwargs):
         file_obj = request.FILES.get('file')
         if not file_obj:
@@ -60,3 +60,20 @@ class FileUploadView(APIView):
             },
             status=status.HTTP_201_CREATED
         )
+
+
+class UserProfileMediaView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, *args, **kwargs):
+        user = request.user
+        if not hasattr(user, 'profile'):
+            return Response({"error": "User does not have a profile."}, status=status.HTTP_404_NOT_FOUND)
+
+        media_items = UserProfileMedia.objects.filter(profile=user.profile)
+        serializer = UserProfileMediaSerializer(media_items, many=True)
+
+        print(serializer.data)
+
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
