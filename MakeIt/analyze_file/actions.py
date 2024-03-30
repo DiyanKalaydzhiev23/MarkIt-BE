@@ -1,11 +1,14 @@
 import logging
 import os
+import time
+
 import decouple
 import io
 import json
 import zipfile
 import tempfile
 
+import requests
 from adobe.pdfservices.operation.auth.credentials import Credentials
 from adobe.pdfservices.operation.exception.exceptions import ServiceApiException, ServiceUsageException, SdkException
 from adobe.pdfservices.operation.pdfops.options.extractpdf.extract_pdf_options import ExtractPDFOptions
@@ -139,3 +142,91 @@ def video_detect_text(video_file):
         response_data["text_annotations"].append(text_data)
 
     return response_data
+
+
+def get_last_transcript_id():
+    headers = {"Authorization": f'Bearer {os.getenv("FIREFLIES_API_KEY", decouple.config("FIREFLIES_API_KEY"))}'}
+
+    def run_query(query): # A simple function to use requests.post to make the API call. Note the json= section.
+        request = requests.post('https://api.fireflies.ai/graphql', json={'query': query}, headers=headers)
+
+        if request.status_code == 200:
+            return request.json()
+        if headers["Authorization"] == "Bearer ae5a2f8e-e719-4f2a-82e2-156661d0660f":
+            print("Please change your Bearer token first. You can get it from https://app.fireflies.ai/api-settings")
+            raise Exception("Not authorized")
+        else:
+            raise Exception("Query failed to run by returning code of {}. {}".format(request.status_code, query))
+
+    query = """
+    {
+      user {
+        user_id
+        email
+        recent_transcript
+      }
+    }
+    """
+
+    result = run_query(query)
+    recent_transcript = result["data"]["user"]["recent_transcript"]
+    return recent_transcript
+
+
+def analyze_audio(audio_url):
+    last_transcript_id = os.getenv("FIREFLIES_API_KEY", decouple.config("FIREFLIES_API_KEY"))
+
+    url = 'https://api.fireflies.ai/graphql'
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {os.getenv("FIREFLIES_API_KEY", decouple.config("FIREFLIES_API_KEY"))}'
+    }
+
+    input_data = {
+        "url": f"{audio_url}",
+        "title": "research",
+        "attendees": []}
+
+    data = {
+        'query': '''
+            mutation($input: AudioUploadInput) {
+                uploadAudio(input: $input) {
+                    success
+                    title
+                    message
+                }
+            }
+        ''',
+        'variables': {'input': input_data}
+    }
+
+    response = requests.post(url, headers=headers, json=data)
+
+    if response.status_code == 200:
+        print(response.json())
+
+        new_transcript_id = last_transcript_id
+
+        while new_transcript_id == last_transcript_id:
+            new_transcript_id = get_last_transcript_id()
+            time.sleep(1)
+
+        return get_transcripts(new_transcript_id)
+
+    else:
+        return response.text
+
+
+def get_transcripts(id):
+    url = 'https://api.fireflies.ai/graphql'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {os.getenv("FIREFLIES_API_KEY", decouple.config("FIREFLIES_API_KEY"))}'
+    }
+    data = f"""{{"query": "query Transcript($transcriptId: String!) {{ transcript(id: $transcriptId) {{ title id summary {{ overview }} }} }}", "variables": {{"transcriptId": "{id}"}}}}"""
+    print("the data", data)
+
+    response = requests.post(url, headers=headers, data=data)
+    data = response.json()
+    return data["data"]['transcript']["summary"]["overview"]

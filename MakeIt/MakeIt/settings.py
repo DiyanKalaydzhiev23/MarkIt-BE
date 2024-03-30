@@ -1,6 +1,6 @@
 import os
 import decouple
-
+import cloudinary
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -124,6 +124,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CLOUDINARY = {
+    'cloud_name': os.getenv('CLOUDINARY_CLOUD_NAME', decouple.config('CLOUDINARY_CLOUD_NAME')),
+    'api_key': os.getenv('CLOUDINARY_API_KEY', decouple.config('CLOUDINARY_API_KEY')),
+    'api_secret': os.getenv('CLOUDINARY_API_SECRET', decouple.config('CLOUDINARY_API_SECRET')),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
