@@ -13,6 +13,8 @@ from adobe.pdfservices.operation.pdfops.options.extractpdf.extract_element_type 
 from adobe.pdfservices.operation.execution_context import ExecutionContext
 from adobe.pdfservices.operation.io.file_ref import FileRef
 from adobe.pdfservices.operation.pdfops.extract_pdf_operation import ExtractPDFOperation
+from google.cloud import videointelligence
+
 from file_upload_router.actions import download_file_from_bucket
 
 
@@ -97,3 +99,41 @@ def extract_text_from_json_from_pdf(json_data):
             result.append(element.get("Text"))
 
     return result
+
+
+def video_detect_text(video_file):
+    video_client = videointelligence.VideoIntelligenceServiceClient()
+    features = [videointelligence.Feature.TEXT_DETECTION]
+    video_context = videointelligence.VideoContext()
+
+    # Since video_file is an UploadedFile object, you can read its content directly
+    input_content = video_file.read()
+
+    operation = video_client.annotate_video(
+        request={
+            "features": features,
+            "input_content": input_content,
+            "video_context": video_context,
+        }
+    )
+
+    print("\nProcessing video for text detection.")
+    result = operation.result(timeout=300)
+    annotation_result = result.annotation_results[0]
+
+    # Preparing the response data
+    response_data = {"text_annotations": []}
+    for text_annotation in annotation_result.text_annotations:
+        text_data = {"text": text_annotation.text, "segments": []}
+        for segment in text_annotation.segments:
+            start_time = segment.segment.start_time_offset
+            end_time = segment.segment.end_time_offset
+            segment_data = {
+                "start_time": start_time.seconds + start_time.microseconds * 1e-6,
+                "end_time": end_time.seconds + end_time.microseconds * 1e-6,
+                "confidence": segment.confidence,
+            }
+            text_data["segments"].append(segment_data)
+        response_data["text_annotations"].append(text_data)
+
+    return response_data

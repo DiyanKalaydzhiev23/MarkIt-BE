@@ -4,10 +4,8 @@ from rest_framework import status
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
-from google.cloud import storage
-from google.cloud import videointelligence
 from rest_framework.response import Response
-from analyze_file.actions import extract_text_from_pdf
+from analyze_file.actions import extract_text_from_pdf, video_detect_text
 from helpers import get_summary_for_extracted_text
 
 
@@ -48,37 +46,13 @@ class AnalyzeVideo(APIView):
         ),
     ])
     def post(self, request, *args, **kwargs):
-        # Assuming the video is sent as a file in a form-data request
         video_file = request.FILES.get('video')
         if not video_file:
-            return Response({"error": "No video file provided."}, status=400)
+            return Response({"error": "No video file provided."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Initialize Google Cloud Storage client
-        storage_client = storage.Client()
-        bucket_name = "your-gcs-bucket-name"
-        bucket = storage_client.bucket(bucket_name)
-
-        # Generate a unique filename for GCS upload
-        gcs_filename = f"uploads/{uuid.uuid4()}.mp4"
-        blob = bucket.blob(gcs_filename)
-
-        # Upload the video file to GCS
-        blob.upload_from_file(video_file, content_type=video_file.content_type)
-
-        # Now the video is in GCS, and we have its URI
-        gcs_uri = f"gs://{bucket_name}/{gcs_filename}"
-
-        # Call the Video Intelligence API with the GCS URI
-        video_client = videointelligence.VideoIntelligenceServiceClient()
-        features = [videointelligence.Feature.SPEECH_TRANSCRIPTION]
-        operation = video_client.annotate_video(input_uri=gcs_uri, features=features)
-        result = operation.result(timeout=180)
-
-        # Process the result...
-
-        print("the result", result)
-
-        # Optionally, delete the video from GCS after processing
-        blob.delete()
-
-        return Response({"message": "Video processed successfully"})
+        try:
+            response_data = video_detect_text(video_file)
+            print("the res", response_data)
+            return Response(response_data, status=status.HTTP_200_OK)
+        except Exception as e:
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
