@@ -1,3 +1,14 @@
 from django.contrib import admin
+from file_upload_router.models import Project, UserProfileMedia
 
-# Register your models here.
+
+@admin.register(Project)
+class ProjectAdmin(admin.ModelAdmin):
+    list_display = ['project_name', 'profile']
+    search_fields = ['project_name', 'profile__user__username']
+
+
+@admin.register(UserProfileMedia)
+class UserProfileMediaAdmin(admin.ModelAdmin):
+    list_display = ['file_path', 'extension', 'project']
+    search_fields = ['file_path', 'project__project_name']
