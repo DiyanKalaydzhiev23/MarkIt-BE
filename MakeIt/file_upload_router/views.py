@@ -1,5 +1,6 @@
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework import status
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.views import APIView
@@ -12,13 +13,23 @@ from file_upload_router.serializers import UserProfileMediaSerializer
 class FileUploadView(APIView):
     parser_classes = (MultiPartParser, FormParser)
 
-    @swagger_auto_schema(
-        operation_description="Retrieve all user profile media items.",
-        responses={
-            200: UserProfileMediaSerializer(many=True),
-            404: 'User does not have a profile.'
-        }
-    )
+    @swagger_auto_schema(manual_parameters=[
+        openapi.Parameter(
+            'file',
+            openapi.IN_QUERY,
+            type=openapi.TYPE_FILE,
+        ),
+        openapi.Parameter(
+            'project_name',
+            openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+        ),
+        openapi.Parameter(
+            'project_path',
+            openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
+        ),
+    ])
     def post(self, request, *args, **kwargs):
         file_obj = request.FILES.get('file')
         if not file_obj:
@@ -34,8 +45,15 @@ class FileUploadView(APIView):
             )
 
         # Splitting filename and extension
+        project_name = request.data.get('project_name')
+        project_path = request.data.get('project_path')
+
+        if not project_name or not project_path:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         filename, extension = str(file_obj).rsplit('.', 1)
-        upload_response = upload_file_to_bucket(file_obj, filename, extension, user.username)
+        file_path = f"{project_name}/{project_path}/{filename}.{extension}"
+        upload_response = upload_file_to_bucket(file_obj, file_path, user.username)
 
         # Assuming upload_file_to_bucket returns a response object with a 'ok' attribute
         if not upload_response.ok:
@@ -47,7 +65,8 @@ class FileUploadView(APIView):
         # Save the file information to the database
         profile = user.profile  # Assuming a one-to-one relationship with Profile
         UserProfileMedia.objects.create(
-            file_path=filename,
+            project_name=project_name,
+            file_path=file_path,
             extension=extension,
             profile=profile
         )
@@ -65,6 +84,13 @@ class FileUploadView(APIView):
 class UserProfileMediaView(APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        operation_description="Retrieve all user profile media items.",
+        responses={
+            200: UserProfileMediaSerializer(many=True),
+            404: 'User does not have a profile.'
+        }
+    )
     def get(self, request, *args, **kwargs):
         user = request.user
         if not hasattr(user, 'profile'):
@@ -73,7 +99,4 @@ class UserProfileMediaView(APIView):
         media_items = UserProfileMedia.objects.filter(profile=user.profile)
         serializer = UserProfileMediaSerializer(media_items, many=True)
 
-        print(serializer.data)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
-

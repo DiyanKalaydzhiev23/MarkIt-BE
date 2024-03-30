@@ -11,22 +11,17 @@ class AnalyzePdf(APIView):
 
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter(
-            'filename',
+            'file_path',
             openapi.IN_QUERY,
             type=openapi.TYPE_FILE,
-        ),
-        openapi.Parameter(
-            'extension',
-            openapi.IN_QUERY,
-            type=openapi.TYPE_FILE,
-        ),
+            description="full path example: project_name/path/filename.extension"
+        )
     ])
     def post(self, request, *args, **kwargs):
         user = request.user
-        filename = request.data.get('filename')
-        extension = request.data.get('extension')
+        file_path = request.data.get('file_path')
 
-        data: list = extract_text_from_pdf(filename, extension, user.username)
+        data: list = extract_text_from_pdf(file_path, user.username)
         end_result = get_summary_for_extracted_text(data)
 
         return Response(

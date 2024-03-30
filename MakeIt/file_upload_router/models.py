@@ -3,6 +3,9 @@ from auth_app.models import Profile
 
 
 class UserProfileMedia(models.Model):
+    project_name = models.CharField(
+        max_length=255,
+    )
     file_path = models.CharField(
         max_length=255
     )

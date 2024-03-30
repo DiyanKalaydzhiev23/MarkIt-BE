@@ -6,8 +6,8 @@ STORAGE_ZONE_NAME = 'markitstorage'
 BASE_URL = "storage.bunnycdn.com"
 
 
-def upload_file_to_bucket(file_data, filename, extension, username):
-    url = f"https://{BASE_URL}/{STORAGE_ZONE_NAME}/{username}/{filename}.{extension}"
+def upload_file_to_bucket(file_data, file_path, username):
+    url = f"https://{BASE_URL}/{STORAGE_ZONE_NAME}/{username}/{file_path}"
 
     headers = {
         "AccessKey": os.getenv('BUNNY_NET_ACCESS_KEY', decouple.config('BUNNY_NET_ACCESS_KEY')),
@@ -20,8 +20,10 @@ def upload_file_to_bucket(file_data, filename, extension, username):
     return response
 
 
-def download_file_from_bucket(filename, extension, username):
-    url = f"https://{BASE_URL}/{STORAGE_ZONE_NAME}/{username}/{filename}.{extension}"
+def download_file_from_bucket(file_path, username):
+    url = f"https://{BASE_URL}/{STORAGE_ZONE_NAME}/{username}/{file_path}"
+
+    print("the url is ", url)
 
     headers = {
         "accept": "*/*",

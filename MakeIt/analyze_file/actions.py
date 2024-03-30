@@ -21,8 +21,8 @@ from file_upload_router.actions import download_file_from_bucket
 logging.basicConfig(level=os.environ.get("LOGLEVEL", "INFO"))
 
 
-def extract_text_from_pdf(filename, extension, username):
-    file_content = download_file_from_bucket(filename, extension, username)
+def extract_text_from_pdf(file_path, username):
+    file_content = download_file_from_bucket(file_path, username)
 
     if file_content is None:
         logging.error("Failed to download file")
@@ -125,6 +125,7 @@ def video_detect_text(video_file):
     response_data = {"text_annotations": []}
     for text_annotation in annotation_result.text_annotations:
         text_data = {"text": text_annotation.text, "segments": []}
+
         for segment in text_annotation.segments:
             start_time = segment.segment.start_time_offset
             end_time = segment.segment.end_time_offset
@@ -134,6 +135,7 @@ def video_detect_text(video_file):
                 "confidence": segment.confidence,
             }
             text_data["segments"].append(segment_data)
+
         response_data["text_annotations"].append(text_data)
 
     return response_data
