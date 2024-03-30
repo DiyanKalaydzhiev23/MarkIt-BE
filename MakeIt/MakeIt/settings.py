@@ -35,6 +35,7 @@ MY_APPS = [
     'auth_app',
     'file_upload_router',
     'analyze_file',
+    'summary_app',
 ]
 
 INSTALLED_APPS = [

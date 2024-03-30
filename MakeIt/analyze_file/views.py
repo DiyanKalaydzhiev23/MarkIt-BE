@@ -4,7 +4,9 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from analyze_file.actions import extract_text_from_pdf, video_detect_text
+from file_upload_router.models import UserProfileMedia
 from helpers import get_summary_for_extracted_text
+from summary_app.actions import save_project_prompt
 
 
 class AnalyzePdf(APIView):
@@ -23,6 +25,10 @@ class AnalyzePdf(APIView):
 
         data: list = extract_text_from_pdf(file_path, user.username)
         end_result = get_summary_for_extracted_text(data)
+        project_name = file_path.split('/')[0]
+        file = UserProfileMedia.objects.get(file_path=file_path)
+
+        save_project_prompt(end_result, project_name, file)
 
         return Response(
             {"analysis": end_result},

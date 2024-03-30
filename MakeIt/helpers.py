@@ -21,16 +21,20 @@ def serialize_load_json(data):
     return result
 
 
-def get_summary_for_extracted_text(data: list):
+def get_summary_for_extracted_text(
+        data: list,
+        prompt="Make analytics ask a market researcher for this data"
+):
     headers = {"Authorization": f"Bearer {decouple.config('EDEN_AI_API_KEY')}"}
 
     url = "https://api.edenai.run/v2/text/chat"
     payload = {
         "providers": "openai",
-        "text": "Make analytics ask a market researcher for this data" + "".join(data),
+        "text": prompt + "".join(data),
         "chatbot_global_action": "Act as a market researcher doing research on a project. "
                                  "Give structured data about the type of people in the text, revenue, sales etc."
-                                 "In the response give only data that matters and makes sense.",
+                                 "In the response give only data that matters and makes sense."
+                                 "Remember from which file comes which data!",
         "previous_history": [],
         "temperature": 0.0,
         "max_tokens": 500,

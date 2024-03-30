@@ -69,7 +69,7 @@ class FileUploadView(APIView):
 
         # Save the file information to the database linked with the found or created project
         UserProfileMedia.objects.create(
-            file_path=filename,
+            file_path=file_path,
             extension=extension,
             project=project
         )
@@ -122,8 +122,8 @@ class CreateProjectView(APIView):
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter(
             'project_name',
-            openapi.IN_FORM,
-            type=openapi.TYPE_FILE,
+            openapi.IN_QUERY,
+            type=openapi.TYPE_STRING,
             required=True,
         ),
     ])
