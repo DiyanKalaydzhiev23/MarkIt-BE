@@ -8,40 +8,34 @@ class User(auth_models.AbstractBaseUser, auth_models.PermissionsMixin):
 
     username = models.CharField(
         max_length=25,
-        unique=True,
+        unique=True
     )
-
     date_joined = models.DateTimeField(
-        auto_now_add=True,
+        auto_now_add=True
     )
-
     is_staff = models.BooleanField(
-        default=False,
+        default=False
     )
 
     objects = CustomUserManager()
 
 
 class Profile(models.Model):
-
     email = models.EmailField(
-        unique=True,
+        unique=True
     )
-
     first_name = models.CharField(
         max_length=50,
         default='',
-        blank=True,
+        blank=True
     )
-
     last_name = models.CharField(
         max_length=50,
         default='',
-        blank=True,
+        blank=True
     )
-
     user = models.OneToOneField(
         User,
         on_delete=models.CASCADE,
-        primary_key=True,
+        primary_key=True
     )
