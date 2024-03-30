@@ -28,7 +28,6 @@ class AnalyzePdf(APIView):
         extension = request.data.get('extension')
 
         data: list = extract_text_from_pdf(filename, extension, user.username)
+        end_result = get_summary_for_extracted_text(data)
 
-        get_summary_for_extracted_text(data)
-
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(end_result, status=status.HTTP_201_CREATED)

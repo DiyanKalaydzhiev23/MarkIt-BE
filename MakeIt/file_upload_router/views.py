@@ -36,4 +36,10 @@ class FileUploadView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(
+            {
+                "filename": filename,
+                "extension": extension,
+            },
+            status=status.HTTP_201_CREATED
+        )

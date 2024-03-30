@@ -41,3 +41,5 @@ def get_summary_for_extracted_text(data: list):
 
     result = json.loads(response.text)
     print(result['openai']['generated_text'])
+
+    return result['openai']['generated_text']
