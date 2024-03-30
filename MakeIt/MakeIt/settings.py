@@ -27,8 +27,8 @@ CORS_ORIGIN_WHITELIST = (
 )
 
 CORS_ALLOW_HEADERS = (
-    'content-disposition', 'accept-encoding',
-    'content-type', 'accept', 'origin', 'authorization'
+    'content-disposition', 'accept-encoding', 'credentials',
+    'content-type', 'accept', 'origin', 'authorization', 'Ngrok-Skip-Browser-Warning'
 )
 
 MY_APPS = [

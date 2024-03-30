@@ -16,11 +16,6 @@ class QueryProject(views.APIView):
             type=openapi.TYPE_STRING,
         ),
         openapi.Parameter(
-            'old_conversions',
-            openapi.IN_QUERY,
-            type=openapi.TYPE_ARRAY,
-        ),
-        openapi.Parameter(
             'project_name',
             openapi.IN_QUERY,
             type=openapi.TYPE_STRING,
@@ -29,7 +24,7 @@ class QueryProject(views.APIView):
     def post(self, request):
         prompt = request.data.get('prompt')
         project_name = request.data.get('project_name')
-        old_conversations = request.data.get('old_conversions', [])
+        old_conversations = request.data.get('old_conversations', [])
 
         try:
             project = Project.objects.get(project_name=project_name)
