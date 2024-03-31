@@ -47,9 +47,15 @@ class AnalyzePdf(APIView):
 class AnalyzeAudio(APIView):
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter(
-            'audio',
+            'file',
             openapi.IN_QUERY,
             type=openapi.TYPE_FILE,
+        ),
+        openapi.Parameter(
+            'file_path',
+            openapi.IN_QUERY,
+            type=openapi.TYPE_FILE,
+            description="full path example: project_name/path/filename.extension"
         )
     ])
     def post(self, request, *args, **kwargs):
@@ -60,7 +66,7 @@ class AnalyzeAudio(APIView):
             api_secret=settings.CLOUDINARY['api_secret'],
         )
 
-        audio_file = request.FILES.get('audio')
+        audio_file = request.FILES.get('file')
         if not audio_file:
             return Response({"error": "Audio file is required."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -81,19 +87,21 @@ class AnalyzeAudio(APIView):
 class AnalyzeVideo(APIView):
     @swagger_auto_schema(manual_parameters=[
         openapi.Parameter(
-            'video',
+            'file',
             openapi.IN_QUERY,
             type=openapi.TYPE_FILE,
-        ),
+        )
     ])
     def post(self, request, *args, **kwargs):
+        video_file = request.FILES.get('file')
+        file_path = request.data.get('file_path')
+
         cloudinary.config(
             cloud_name=settings.CLOUDINARY['cloud_name'],
             api_key=settings.CLOUDINARY['api_key'],
             api_secret=settings.CLOUDINARY['api_secret'],
         )
 
-        video_file = request.FILES.get('video')
         if not video_file:
             return Response({"error": "No video file provided."}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -112,6 +120,10 @@ class AnalyzeVideo(APIView):
             )
             overview = analyze_audio("https://" + "".join(upload_result['url'].split("://")[1:]))
 
+            project_name = file_path.split('/')[0]
+            file = UserProfileMedia.objects.get(file_path=file_path)
+            save_project_prompt(overview, project_name, file)
+
         os.remove(temp_audio_path)
 
-        return Response({"overview": overview}, status=status.HTTP_200_OK)
+        return Response({"analysis": overview}, status=status.HTTP_200_OK)
