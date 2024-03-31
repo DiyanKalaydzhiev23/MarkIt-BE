@@ -9,22 +9,12 @@ from summary_app.models import ProjectPrompts
 
 class QueryProject(views.APIView):
 
-    @swagger_auto_schema(manual_parameters=[
-        openapi.Parameter(
-            'prompt',
-            openapi.IN_QUERY,
-            type=openapi.TYPE_STRING,
-        ),
-        openapi.Parameter(
-            'project_name',
-            openapi.IN_QUERY,
-            type=openapi.TYPE_STRING,
-        ),
-    ])
     def post(self, request):
         prompt = request.data.get('prompt')
         project_name = request.data.get('project_name')
         old_conversations = request.data.get('old_conversations', [])
+        print("request", request.data)
+        print("olddd", old_conversations)
 
         try:
             project = Project.objects.get(project_name=project_name)
@@ -41,7 +31,7 @@ class QueryProject(views.APIView):
 
         return Response(
             {
-                'result': result,
+                'analysis': result,
             },
             status=status.HTTP_200_OK
         )

@@ -126,4 +126,4 @@ class AnalyzeVideo(APIView):
 
         os.remove(temp_audio_path)
 
-        return Response({"overview": overview}, status=status.HTTP_200_OK)
+        return Response({"analysis": overview}, status=status.HTTP_200_OK)
